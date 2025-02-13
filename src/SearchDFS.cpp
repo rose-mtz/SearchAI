@@ -32,17 +32,46 @@ void SearchDFS::step()
         return;
     }
 
-    bool hitMaxDepth = (this->open.size() == 0);
-    if (hitMaxDepth)
+    bool noNodesInOpen = (this->open.size() == 0);
+    if (noNodesInOpen)
     {
-        for (int i = 0; i < this->closed.size(); i++)
+        bool backtrackedToInitialNode = this->closed.size() == 1;
+        if (backtrackedToInitialNode)
         {
-            delete closed[i];
-        }
-        closed.clear();
+            bool noChildWasCutoff = !closed.back()->cutoff;
+            if (noChildWasCutoff)
+            {
+                this->failure = true;
+                delete closed.back();
+                closed.pop_back();
 
-        this->init();
-        return;
+                return;
+            }
+            else
+            {
+                // restart and DEEPENING the search
+                delete closed.back();
+                closed.pop_back();
+
+                this->init();
+                return;
+            }
+        }
+        else
+        {
+            Node* node = closed.back();
+            closed.pop_back();
+
+            bool parentCutOffAlready = closed.back()->cutoff;
+            bool childWasCutOff = node->cutoff;
+            if (!parentCutOffAlready && childWasCutOff)
+            {
+                closed.back()->cutoff = true;
+            }
+
+            delete node; 
+            return;
+        }
     }
 
     bool backTracking = (closed.size() != 0) && (closed.back()->depth >= open.back()->depth);
@@ -50,8 +79,15 @@ void SearchDFS::step()
     {
         Node* node = closed.back();
         closed.pop_back();
-        delete node; 
 
+        bool parentCutOffAlready = closed.back()->cutoff;
+        bool childWasCutOff = node->cutoff;
+        if (!parentCutOffAlready && childWasCutOff)
+        {
+            closed.back()->cutoff = true;
+        }
+
+        delete node; 
         return;
     }
 
@@ -72,9 +108,9 @@ void SearchDFS::step()
     this->expand(toExplore, DOWN);
     this->expand(toExplore, LEFT);
 
-    // std::cout << "After Step: \n";
-    // std::cout << "    Open: " << this->open.size() << '\n';
-    // std::cout << "    Closed: " << this->closed.size() << '\n';
+    std::cout << "After Step: \n";
+    std::cout << "    Open: " << this->open.size() << '\n';
+    std::cout << "    Closed: " << this->closed.size() << '\n';
 }
 
 void SearchDFS::finish()
@@ -83,7 +119,7 @@ void SearchDFS::finish()
 
 bool SearchDFS::done()
 {
-    return (this->open.size() == 0 && this->CURRENT_MAX_DEPTH == this->MAX_DEPTH) || this->foundGoal;
+    return (this->failure || this->CURRENT_MAX_DEPTH == this->MAX_DEPTH) || this->foundGoal;
 }
 
 const std::vector<Node*> SearchDFS::getOpen()
@@ -139,6 +175,7 @@ void SearchDFS::expand(Node* node, Action act)
     bool childAtMaxDepth = node->depth + 1 == this->CURRENT_MAX_DEPTH;
     if (childAtMaxDepth)
     {
+        node->cutoff = true;
         return;
     }
 

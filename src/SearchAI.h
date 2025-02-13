@@ -14,6 +14,7 @@ struct Node
     GridCell state;
     Node* parent;
     unsigned int depth;
+    bool cutoff = false;
 };
 
 enum Action
