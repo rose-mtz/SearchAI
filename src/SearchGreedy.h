@@ -1,13 +1,12 @@
 #include "SearchAI.h"
 #include <vector>
-#include <limits>
 
 
-class SearchDFS : public SearchAI
+class SearchGreedy : public SearchAI
 {
 public:
-    SearchDFS(const Grid* grid, GridCell start, GridCell end);
-    ~SearchDFS() override;
+    SearchGreedy(const Grid* grid, GridCell start, GridCell end);
+    ~SearchGreedy() override;
 
     void step() override;
     void finish() override;
@@ -20,14 +19,11 @@ public:
 private:
     GridCell start;
     GridCell end;
-    std::vector<Node*> open; // stack
+    std::vector<Node*> open;
     std::vector<Node*> closed;
     const Grid* grid = nullptr;
     Node* goal = nullptr;
     bool foundGoal = false;
-    bool failure = false;
-    const unsigned int MAX_DEPTH = std::numeric_limits<unsigned int>::max(); // exclusive
-    unsigned int CURRENT_MAX_DEPTH = 0; // exclusive
 
 
     void init();

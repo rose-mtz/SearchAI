@@ -15,6 +15,7 @@ struct Node
     Node* parent;
     unsigned int depth;
     bool cutoff = false;
+    int heuristicCost = 0;
 };
 
 enum Action

@@ -9,6 +9,7 @@
 #include "SearchAI.h"
 #include "SearchBFS.h"
 #include "SearchDFS.h"
+#include "SearchGreedy.h"
 #include "Renderer.h"
 
 const glm::vec3 SOLUTION_COLOR = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -90,14 +91,15 @@ int main()
             if (reInitAI && selectedPathEndpoints == 2)
             {
                 // ai.init(getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT), &grid, aiType);
-                if (aiType == DFS)
-                {
-                    ai = new SearchDFS(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
-                }
-                else
-                {
-                    ai = new SearchBFS(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
-                }
+                // if (aiType == DFS)
+                // {
+                //     ai = new SearchDFS(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
+                // }
+                // else
+                // {
+                //     ai = new SearchBFS(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
+                // }
+                ai = new SearchGreedy(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
                 reInitAI = false;
             }
         }
