@@ -2,16 +2,6 @@
 #include <iostream>
 
 
-/**
- * FAILURE! A node should be able to say, hey don't EVER look down here again. I know 100%
- * the goal isn't down here so don't search down here again! This may help stop that flailing. But how?
- * 
- * Maybe children could pass up "FAILURE" to parent.
- * The base case would be a child that did not spawn any children but could have gone deeper. 
- * 
- * If the faulres gets passed to all 4 sides of initial state, then we know it ain't possible to get to solution.
- */
-
 SearchDFS::SearchDFS(const Grid* grid, GridCell start, GridCell end)
     : grid(grid), start(start), end(end)
 {
@@ -32,49 +22,28 @@ void SearchDFS::step()
         return;
     }
 
-    bool noNodesInOpen = (this->open.size() == 0);
-    if (noNodesInOpen)
+    bool backtrackedToInitialNode = (this->closed.size() == 1) && (this->open.size() == 0);
+    if (backtrackedToInitialNode)
     {
-        bool backtrackedToInitialNode = this->closed.size() == 1;
-        if (backtrackedToInitialNode)
+        Node* initial = closed.back();
+        closed.pop_back();
+
+        bool noChildWasCutoff = !initial->cutoff;
+        if (noChildWasCutoff)
         {
-            bool noChildWasCutoff = !closed.back()->cutoff;
-            if (noChildWasCutoff)
-            {
-                this->failure = true;
-                delete closed.back();
-                closed.pop_back();
-
-                return;
-            }
-            else
-            {
-                // restart and DEEPENING the search
-                delete closed.back();
-                closed.pop_back();
-
-                this->init();
-                return;
-            }
+            this->failure = true;
         }
         else
         {
-            Node* node = closed.back();
-            closed.pop_back();
-
-            bool parentCutOffAlready = closed.back()->cutoff;
-            bool childWasCutOff = node->cutoff;
-            if (!parentCutOffAlready && childWasCutOff)
-            {
-                closed.back()->cutoff = true;
-            }
-
-            delete node; 
-            return;
+            // It looks like DEEPENING is back on the menu, boys!
+            this->init();
         }
+        
+        delete initial;
+        return;
     }
 
-    bool backTracking = (closed.size() != 0) && (closed.back()->depth >= open.back()->depth);
+    bool backTracking = (open.size() == 0) || (closed.size() != 0 && closed.back()->depth >= open.back()->depth);
     if (backTracking)
     {
         Node* node = closed.back();
@@ -87,7 +56,7 @@ void SearchDFS::step()
             closed.back()->cutoff = true;
         }
 
-        delete node; 
+        delete node;
         return;
     }
 
