@@ -1,17 +1,17 @@
-#include "SearchGreedy.h"
+#include "SearchAStar.h"
 
 
-SearchGreedy::SearchGreedy(const Grid* grid, GridCell start, GridCell end)
+SearchAStar::SearchAStar(const Grid* grid, GridCell start, GridCell end)
     : grid(grid), start(start), end(end)
 {
     this->init();
 }
 
-SearchGreedy::~SearchGreedy()
+SearchAStar::~SearchAStar()
 {
 }
 
-void SearchGreedy::step()
+void SearchAStar::step()
 {
     if (this->done())
     {
@@ -21,7 +21,7 @@ void SearchGreedy::step()
     int indexOfLowestCostNode = 0;
     for (int i = 1; i < this->open.size(); i++)
     {
-        if (this->open[i]->heuristicCost < this->open[indexOfLowestCostNode]->heuristicCost)
+        if (this->open[i]->heuristicCost + this->open[i]->costToInitial  < this->open[indexOfLowestCostNode]->heuristicCost + this->open[indexOfLowestCostNode]->costToInitial)
         {
             indexOfLowestCostNode = i;
         }
@@ -48,16 +48,16 @@ void SearchGreedy::step()
     this->expand(toExplore, LEFT);
 }
 
-void SearchGreedy::finish()
+void SearchAStar::finish()
 {
 }
 
-bool SearchGreedy::done()
+bool SearchAStar::done()
 {
     return this->foundGoal || this->open.size() == 0;
 }
 
-const std::vector<Node*> SearchGreedy::getOpen()
+const std::vector<Node*> SearchAStar::getOpen()
 {
     std::vector<Node*> nodeVec(this->open.size());
     for (int i = 0; i < open.size(); i++)
@@ -68,7 +68,7 @@ const std::vector<Node*> SearchGreedy::getOpen()
     return nodeVec;
 }
 
-const std::vector<Node*> SearchGreedy::getClosed()
+const std::vector<Node*> SearchAStar::getClosed()
 {
     std::vector<Node*> nodeVec(this->closed.size());
     for (int i = 0; i < closed.size(); i++)
@@ -79,7 +79,7 @@ const std::vector<Node*> SearchGreedy::getClosed()
     return nodeVec;
 }
 
-const std::vector<Node*> SearchGreedy::getSolution()
+const std::vector<Node*> SearchAStar::getSolution()
 {
     std::vector<Node*> solution;
 
@@ -93,16 +93,17 @@ const std::vector<Node*> SearchGreedy::getSolution()
     return solution;
 }
 
-void SearchGreedy::init()
+void SearchAStar::init()
 {
     Node* initial = new Node;
     initial->parent = nullptr;
     initial->state = this->start;
     initial->heuristicCost = heuristicManhattan(initial->state, this->end);
+    initial->costToInitial = 0;
     this->open.push_back(initial);
 }
 
-void SearchGreedy::expand(Node* node, Action act)
+void SearchAStar::expand(Node* node, Action act)
 {
     bool isIllegalAction = !isLegalAction(this->grid, node->state, act);
     if (isIllegalAction)
@@ -134,6 +135,7 @@ void SearchGreedy::expand(Node* node, Action act)
     child->state = childState;
     child->parent = node;
     child->heuristicCost = heuristicManhattan(childState, this->end);
+    child->costToInitial = node->costToInitial + 1; // action cost is 1
 
     this->open.push_back(child);
 }

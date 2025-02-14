@@ -41,6 +41,15 @@
 //     }
 // }
 
+int heuristicManhattan(GridCell start, GridCell end)
+{
+    int cost = 0;
+    cost += (start.row > end.row) ? (start.row - end.row) : (end.row - start.row); 
+    cost += (start.col > end.col) ? (start.col - end.col) : (end.col - start.col);
+
+    return cost; 
+}
+
 GridCell doAction(GridCell state, Action act)
 {
     if (act == UP)
@@ -260,3 +269,4 @@ bool isLegalAction(const Grid* grid, GridCell state, Action act)
 //         return foundGoal || this->open.isEmpty();
 //     }
 // }
+

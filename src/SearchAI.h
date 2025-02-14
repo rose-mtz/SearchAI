@@ -16,6 +16,7 @@ struct Node
     unsigned int depth;
     bool cutoff = false;
     int heuristicCost = 0;
+    int costToInitial = 0;
 };
 
 enum Action
@@ -77,5 +78,6 @@ private:
 bool isLegalAction(const Grid* grid, GridCell state, Action act);
 GridCell doAction(GridCell state, Action act);
 Node expandHelper(Node* parent, Action act);
+int heuristicManhattan(GridCell start, GridCell end);
 
 #endif
