@@ -26,6 +26,7 @@ public:
     unsigned int getNumberOfColumns() const;
     void clear(unsigned int value);
     bool outOfBounds(GridCell cell) const;
+    void print() const;
 
 private:
     unsigned int** grid = nullptr;

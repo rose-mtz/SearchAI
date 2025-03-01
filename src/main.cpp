@@ -53,13 +53,11 @@ const unsigned int SCR_HEIGHT = 800;
 
 
 bool initialize(GLFWwindow* &window, unsigned int width, unsigned int height);
-void processInput(GLFWwindow *window);
 void loadGrid(Grid& grid, const char* rawData);
 GridCell getCellThatMouseIsOn(Grid& grid,const glm::vec2& mousePos, float gridWidth, float gridHeight);
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-void printGrid();
 void updateAI();
 void render(Renderer& renderer);
 
@@ -96,7 +94,6 @@ int main()
         current_frame = glfwGetTime();
 
         // Input
-        processInput(window);
         glfwPollEvents();
 
         // Update state
@@ -291,17 +288,6 @@ GridCell getCellThatMouseIsOn(Grid& grid,const glm::vec2& mousePos, float gridWi
 // Helper Functions: input/output ---------------------------------------------------------------------
 
 
-void processInput(GLFWwindow *window)
-{
-    bool escaped_pressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
-
-    if (escaped_pressed)
-    {
-        glfwSetWindowShouldClose(window, true);
-    }
-}
-
-
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
     // Update mouse pos
@@ -488,7 +474,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         if (p_press)
         {
             // Print grid
-            printGrid();
+            grid.print();
             return;
         }
 
@@ -502,7 +488,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         }
 
         bool b_press = key == GLFW_KEY_B && action == GLFW_PRESS;
-        
+
         if (b_press)
         {
             // Change selected pre made map
@@ -516,21 +502,5 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             loadGrid(grid, GRID_RAW_DATA[selected_grid_pre_made_map]->rawData);
             return;
         }
-    }
-}
-
-
-void printGrid()
-{
-    std::cout << "Rows: " << grid.getNumberOfRows() << '\n';
-    std::cout << "Cols: " << grid.getNumberOfColumns() << '\n';
-
-    for (unsigned int row = 0; row < grid.getNumberOfRows(); row++)
-    {
-        for (unsigned int col = 0; col < grid.getNumberOfColumns(); col++)
-        {
-            std::cout << grid.get(row, col) << ' ';
-        }
-        std::cout << '\n';
     }
 }

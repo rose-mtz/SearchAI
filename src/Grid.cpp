@@ -1,4 +1,5 @@
 #include "Grid.h"
+#include <iostream>
 
 /**
  * Does not allocate memory for grid.
@@ -107,4 +108,19 @@ bool Grid::outOfBounds(GridCell cell) const
         cell.col >= columns ||
         cell.row >= rows
     );
+}
+
+void Grid::print() const
+{
+    std::cout << "Rows: " << getNumberOfRows() << '\n';
+    std::cout << "Cols: " << getNumberOfColumns() << '\n';
+
+    for (unsigned int row = 0; row < getNumberOfRows(); row++)
+    {
+        for (unsigned int col = 0; col < getNumberOfColumns(); col++)
+        {
+            std::cout << get(row, col) << ' ';
+        }
+        std::cout << '\n';
+    }
 }
