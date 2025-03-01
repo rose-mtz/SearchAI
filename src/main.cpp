@@ -113,16 +113,21 @@ int main()
 
 void updateAI()
 {
-    // AI step/re-initialize
     if (!map_creation_mode)
     {
-        if (selected_path_endpoints == 2 && (path_finder_ai != nullptr && !path_finder_ai->done()) && animate && current_frame + ANIMATION_INTERVAL >= last_animation)
+        bool has_selected_start_and_end = selected_path_endpoints == 2;
+        bool path_finder_not_done = (path_finder_ai != nullptr && !path_finder_ai->done());
+        bool animate_next_step = animate && current_frame + ANIMATION_INTERVAL >= last_animation;
+
+        // Animate path
+        if (has_selected_start_and_end && path_finder_not_done && animate_next_step)
         {
             path_finder_ai->step();
             last_animation = current_frame;
         }
 
-        if (reinitialize_ai && selected_path_endpoints == 2)
+        // Restart AI
+        if (reinitialize_ai && has_selected_start_and_end)
         {
             GridCell start = getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT);
             GridCell end = getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT);
@@ -135,7 +140,7 @@ void updateAI()
             {
                 path_finder_ai = new SearchBFS(&grid, start, end);
             }
-            else if (current_ai_type = A_STAR)
+            else if (current_ai_type == A_STAR)
             {
                 path_finder_ai = new SearchAStar(&grid, start, end);
             }
