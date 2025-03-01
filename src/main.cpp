@@ -94,13 +94,17 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         current_frame = glfwGetTime();
+
+        // Input
         processInput(window);
-
-        updateAI();
-        render(renderer);
-
-        glfwSwapBuffers(window);
         glfwPollEvents();
+
+        // Update state
+        updateAI();
+
+        // Render
+        render(renderer);
+        glfwSwapBuffers(window);
     }
 
     glfwTerminate();
