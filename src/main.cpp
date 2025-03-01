@@ -72,9 +72,7 @@ int main()
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetKeyCallback(window, key_callback);
 
-    Renderer renderer;
-    renderer.GRID_HEIGHT = SCR_HEIGHT;
-    renderer.GRID_WIDTH = SCR_WIDTH;
+    Renderer renderer(SCR_WIDTH, SCR_HEIGHT);
 
     initializeGridData();
     grid.changeGrid(GRID_RAW_DATA[0]->rows, GRID_RAW_DATA[0]->cols);

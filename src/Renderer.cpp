@@ -5,7 +5,7 @@
 
 const glm::vec3 GRID_LINES_COLOR = glm::vec3(0.1f);
 
-Renderer::Renderer()
+Renderer::Renderer(float grid_width, float grid_height)
 {
     // Load shaders
     Shader squareShader;
@@ -32,6 +32,9 @@ Renderer::Renderer()
     // init. renderers
     this->squareRenderer.init(squareShader);
     this->lineRenderer.init(lineShader);
+
+    this->GRID_WIDTH = grid_width;
+    this->GRID_HEIGHT = grid_height;
 }
 
 void Renderer::drawGrid(const Grid& grid)

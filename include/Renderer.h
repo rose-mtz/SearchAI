@@ -15,7 +15,7 @@ const glm::vec3 CELL_COLORS[] =
 class Renderer
 {
 public:
-    Renderer();
+    Renderer(float grid_width, float grid_height);
 
     SquareRenderer squareRenderer;
     LineRenderer lineRenderer;
