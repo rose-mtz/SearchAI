@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -Wall -g -I./dep/glad/include
+CXXFLAGS = -Wall -g -I./dep/glad/include -I./include
 
 # Target executable
 TARGET = ./bin/main.exe
@@ -17,7 +17,7 @@ $(TARGET): ./bin/main.o $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $(TARGET) -lglfw -ldl
 
 # Rule for object files
-./bin/%.o: ./src/%.cpp ./src/%.h
+./bin/%.o: ./src/%.cpp ./include/%.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Special Rules
