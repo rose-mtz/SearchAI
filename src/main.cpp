@@ -53,8 +53,8 @@ const unsigned int SCR_HEIGHT = 800;
 
 
 bool initialize(GLFWwindow* &window, unsigned int width, unsigned int height);
-void loadGrid(Grid& grid, const char* rawData);
-GridCell getCellThatMouseIsOn(Grid& grid,const glm::vec2& mousePos, float gridWidth, float gridHeight);
+void loadGrid(Grid& grid, const char* raw_data);
+GridCell getCell(Grid& grid,const glm::vec2& pos, float grid_width, float grid_height);
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -74,7 +74,7 @@ int main()
         return -1;
     }
 
-    // Events
+    // Events callbacks
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetKeyCallback(window, key_callback);
@@ -130,8 +130,8 @@ void updateAI()
         // Restart AI
         if (reinitialize_ai && has_selected_start_and_end)
         {
-            GridCell start = getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT);
-            GridCell end = getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT);
+            GridCell start = getCell(grid, path_start, SCR_WIDTH, SCR_HEIGHT);
+            GridCell end = getCell(grid, path_end, SCR_WIDTH, SCR_HEIGHT);
 
             if (current_ai_type == ID_DFS)
             {
@@ -191,18 +191,18 @@ void render(Renderer& renderer)
         }
 
         // Mouse
-        GridCell mouseCell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
+        GridCell mouseCell = getCell(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
         renderer.drawCell(mouseCell, grid, MOUSE_COLOR);
 
         // Start and end grid cells
         if (selected_path_endpoints > 0)
         {
-            GridCell pathStartCell = getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT);
+            GridCell pathStartCell = getCell(grid, path_start, SCR_WIDTH, SCR_HEIGHT);
             renderer.drawCell(pathStartCell, grid, SOLUTION_COLOR);
         }
         if (selected_path_endpoints == 2)
         {
-            GridCell pathEndCell = getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT);
+            GridCell pathEndCell = getCell(grid, path_end, SCR_WIDTH, SCR_HEIGHT);
             renderer.drawCell(pathEndCell, grid, SOLUTION_COLOR);
         }
 
@@ -215,7 +215,7 @@ void render(Renderer& renderer)
         renderer.drawGrid(grid);
 
         // Mouse
-        GridCell mouseCell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
+        GridCell mouseCell = getCell(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
         renderer.drawCell(mouseCell, grid, CELL_COLORS[selected_cell_value]);
 
         // Grid lines
@@ -224,11 +224,8 @@ void render(Renderer& renderer)
 }
 
 
-/**
- * Initializes window and GLAD.
- * 
- * Returns false if something went wrong, and logs error.
- */
+// Initializes window and GLAD.
+// Returns false if something went wrong, and logs error.
 bool initialize(GLFWwindow* &window, unsigned int width, unsigned int height)
 {
     glfwInit();
@@ -256,30 +253,30 @@ bool initialize(GLFWwindow* &window, unsigned int width, unsigned int height)
 }
 
 
-void loadGrid(Grid& grid, const char* rawData)
+// Loads grid with data.
+void loadGrid(Grid& grid, const char* raw_data)
 {
     unsigned int i = 0;
     for (unsigned int row = 0; row < grid.getNumberOfRows(); row++)
     {
         for (unsigned int col = 0; col < grid.getNumberOfColumns(); col++)
         {
-            unsigned int value = rawData[i] - '0';
-            grid.set(row, col, value);
-
+            grid.set(row, col, raw_data[i] - '0');
             i += 2;
         }
     }
 }
 
 
-GridCell getCellThatMouseIsOn(Grid& grid,const glm::vec2& mousePos, float gridWidth, float gridHeight)
+// (x,y) --> GridCell(i,j)
+GridCell getCell(Grid& grid, const glm::vec2& pos, float grid_width, float grid_height)
 {
-    const float cellWidth = gridWidth / (float) grid.getNumberOfColumns();
-    const float cellHeight = gridHeight / (float) grid.getNumberOfRows();
+    const float cell_width = grid_width / (float) grid.getNumberOfColumns();
+    const float cell_height = grid_height / (float) grid.getNumberOfRows();
 
     GridCell cell;
-    cell.row = std::floor(mousePos.y / cellHeight);
-    cell.col = std::floor(mousePos.x / cellWidth);
+    cell.row = std::floor(pos.y / cell_height);
+    cell.col = std::floor(pos.x / cell_width);
 
     return cell;
 }
@@ -298,7 +295,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 
     if (map_creation_mode && left_click) // Mode: map creation
     {
-        GridCell clicked_cell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
+        GridCell clicked_cell = getCell(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
 
         if (!grid.outOfBounds(clicked_cell))
         {
@@ -356,7 +353,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
     else // Mode: map creation
     {
-        GridCell clicked_cell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
+        GridCell clicked_cell = getCell(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
 
         if (!grid.outOfBounds(clicked_cell))
         {
