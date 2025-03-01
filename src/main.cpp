@@ -304,7 +304,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
     // Update mouse pos
     mouse_pos.x = xpos;
     mouse_pos.y = ypos;
-    
+
     bool left_click = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 
     if (map_creation_mode && left_click) // Mode: map creation
@@ -322,54 +322,56 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    double xpos, ypos;
-    glfwGetCursorPos(window, &xpos, &ypos);
-
-    if (!map_creation_mode)
+    if (!map_creation_mode) // Mode: search
     {
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        bool left_click = button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS;
+        if (left_click)
         {
+            // User is selecting path endpoints
             if (selected_path_endpoints == 0 || selected_path_endpoints == 2)
             {
-                path_start = glm::vec2(xpos, ypos);
+                path_start = mouse_pos;
                 selected_path_endpoints = 1;
             }
             else 
             {
-                path_end = glm::vec2(xpos,ypos);
+                path_end = mouse_pos;
                 selected_path_endpoints = 2;
                 reinitialize_ai = true;
             }
+
+            return;
         }
 
-        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+        bool right_click = button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS;
+        if (right_click)
         {
-            if (animate)
+            if (animate) // finish / run search for extened period of time
             {
-                float END_TIME = glfwGetTime() + 5.0f;
+                // BUG: this causes program to freeze up while running this loop!
+                // Maybe just switch to taking like 10-100 steps instead.
+
+                float END_TIME = glfwGetTime() + 2.0f;
                 while (!path_finder_ai->done() && END_TIME >= glfwGetTime())
                 {
                     path_finder_ai->step();
                 }
             }
-            else
+            else // take 1 step in search
             {
                 path_finder_ai->step();
             }
+
+            return;
         }
     }
-    else
+    else // Mode: map creation
     {
-        const glm::vec2 mousePOS (xpos, ypos); // what a POS mouse!
-        GridCell clickedCell = getCellThatMouseIsOn(grid, mousePOS, SCR_WIDTH, SCR_HEIGHT);
-        if (
-            clickedCell.row >= 0 && 
-            clickedCell.row < grid.getNumberOfRows() &&
-            clickedCell.col >= 0 &&
-            clickedCell.col < grid.getNumberOfColumns()
-        )
+        GridCell clicked_cell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
+        if (!grid.outOfBounds(clicked_cell))
         {
-            grid.set(clickedCell.row, clickedCell.col, selected_cell_value);
+            // Update cell value
+            grid.set(clicked_cell.row, clicked_cell.col, selected_cell_value);
         }
     }
 }
