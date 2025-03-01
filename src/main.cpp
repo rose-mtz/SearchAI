@@ -223,6 +223,7 @@ void render(Renderer& renderer)
     }
 }
 
+
 /**
  * Initializes window and GLAD.
  * 
@@ -289,7 +290,9 @@ GridCell getCellThatMouseIsOn(Grid& grid,const glm::vec2& mousePos, float gridWi
 
 void processInput(GLFWwindow *window)
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    bool escaped_pressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
+
+    if (escaped_pressed)
     {
         glfwSetWindowShouldClose(window, true);
     }
@@ -298,22 +301,20 @@ void processInput(GLFWwindow *window)
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
+    // Update mouse pos
     mouse_pos.x = xpos;
     mouse_pos.y = ypos;
+    
+    bool left_click = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 
-    if (map_creation_mode && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+    if (map_creation_mode && left_click) // Mode: map creation
     {
-        const glm::vec2 mousePOS (xpos, ypos); // what a POS mouse!
-        GridCell clickedCell = getCellThatMouseIsOn(grid, mousePOS, SCR_WIDTH, SCR_HEIGHT);
+        GridCell clicked_cell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
 
-        if (
-            clickedCell.row >= 0 && 
-            clickedCell.row < grid.getNumberOfRows() &&
-            clickedCell.col >= 0 &&
-            clickedCell.col < grid.getNumberOfColumns()
-        )
+        if (!grid.outOfBounds(clicked_cell))
         {
-            grid.set(clickedCell.row, clickedCell.col, selected_cell_value);
+            // Update cell value
+            grid.set(clicked_cell.row, clicked_cell.col, selected_cell_value);
         }
     }
 }
