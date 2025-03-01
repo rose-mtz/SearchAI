@@ -164,22 +164,28 @@ void render(Renderer& renderer)
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    if (!map_creation_mode)
+    if (!map_creation_mode) // Mode: search
     {
+        // Map
         renderer.drawGrid(grid);
 
         if (selected_path_endpoints == 2 && path_finder_ai != nullptr)
         {
+            // Closed list
             std::vector<Node *> closedList = path_finder_ai->getClosed();
-            for (const Node* aNode : closedList)
+            for (Node* aNode : closedList)
             {
                 renderer.drawCell(aNode->state, grid, CLOSED_CELL);
             }
+
+            // Open list
             std::vector<Node*> openList = path_finder_ai->getOpen();
             for (Node* aNode : openList)
             {
                 renderer.drawCell(aNode->state, grid, OPEN_CELL);
             }
+
+            // Solution path
             std::vector<Node*> solution = path_finder_ai->getSolution();
             for (Node* aNode : solution)
             {
@@ -187,28 +193,32 @@ void render(Renderer& renderer)
             }
         }
 
+        // Mouse
         GridCell mouseCell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
         renderer.drawCell(mouseCell, grid, MOUSE_COLOR);
 
+        // Start and end grid cells
         GridCell pathStartCell = getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT);
+        renderer.drawCell(pathStartCell, grid, SOLUTION_COLOR);
         GridCell pathEndCell = getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT);
-        if (selected_path_endpoints == 1)
+        if (selected_path_endpoints == 2)
         {
-            renderer.drawCell(pathStartCell, grid, SOLUTION_COLOR);
-        }
-        else if (selected_path_endpoints == 2)
-        {
-            renderer.drawCell(pathStartCell, grid, SOLUTION_COLOR);
             renderer.drawCell(pathEndCell, grid, SOLUTION_COLOR);
         }
 
+        // Grid lines
         renderer.drawGridLines(grid);
     }
-    else
+    else // Mode: map creation
     {
+        // Map
         renderer.drawGrid(grid);
+
+        // Mouse
         GridCell mouseCell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
         renderer.drawCell(mouseCell, grid, CELL_COLORS[selected_cell_value]);
+
+        // Grid lines
         renderer.drawGridLines(grid);
     }
 }
