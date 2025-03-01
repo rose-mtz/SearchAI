@@ -31,6 +31,7 @@ bool reinitialize_ai = true;
 SearchAI* path_finder_ai;
 SearchAIType current_ai_type = BFS;
 
+float current_frame = 0.0f;
 float last_animation = 0.0f;
 const float ANIMATION_INTERVAL = 0.2f; // seconds
 bool animate = false;
@@ -56,6 +57,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void printGrid();
+void updateAI();
+void render(Renderer& renderer);
 
 
 int main()
@@ -72,92 +75,23 @@ int main()
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetKeyCallback(window, key_callback);
 
+    // Renderer
     Renderer renderer(SCR_WIDTH, SCR_HEIGHT);
 
+    // Grid
     initializeGridData();
     grid.changeGrid(GRID_RAW_DATA[0]->rows, GRID_RAW_DATA[0]->cols);
     loadGrid(grid, GRID_RAW_DATA[0]->rawData);
 
+
+    // Main loop
     while (!glfwWindowShouldClose(window))
     {
-        float currentFrame = glfwGetTime();
+        current_frame = glfwGetTime();
         processInput(window);
 
-        if (!map_creation_mode)
-        {
-            if (selected_path_endpoints == 2 && (path_finder_ai != nullptr && !path_finder_ai->done()) && animate && currentFrame + ANIMATION_INTERVAL >= last_animation)
-            {
-                path_finder_ai->step();
-                last_animation = currentFrame;
-            }
-
-            if (reinitialize_ai && selected_path_endpoints == 2)
-            {
-                // ai.init(getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT), &grid, aiType);
-                // if (aiType == DFS)
-                // {
-                //     ai = new SearchDFS(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
-                // }
-                // else
-                // {
-                //     ai = new SearchBFS(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
-                // }
-                // ai = new SearchGreedy(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
-                path_finder_ai = new SearchAStar(&grid, getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT));
-                reinitialize_ai = false;
-            }
-        }
-
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        if (!map_creation_mode)
-        {
-            renderer.drawGrid(grid);
-
-            if (selected_path_endpoints == 2 && path_finder_ai != nullptr)
-            {
-                std::vector<Node *> closedList = path_finder_ai->getClosed();
-                for (const Node* aNode : closedList)
-                {
-                    renderer.drawCell(aNode->state, grid, CLOSED_CELL);
-                }
-                std::vector<Node*> openList = path_finder_ai->getOpen();
-                for (Node* aNode : openList)
-                {
-                    renderer.drawCell(aNode->state, grid, OPEN_CELL);
-                }
-                std::vector<Node*> solution = path_finder_ai->getSolution();
-                for (Node* aNode : solution)
-                {
-                    renderer.drawCell(aNode->state, grid, SOLUTION_COLOR);
-                }
-            }
-
-            GridCell mouseCell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
-            renderer.drawCell(mouseCell, grid, MOUSE_COLOR);
-
-            GridCell pathStartCell = getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT);
-            GridCell pathEndCell = getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT);
-            if (selected_path_endpoints == 1)
-            {
-                renderer.drawCell(pathStartCell, grid, SOLUTION_COLOR);
-            }
-            else if (selected_path_endpoints == 2)
-            {
-                renderer.drawCell(pathStartCell, grid, SOLUTION_COLOR);
-                renderer.drawCell(pathEndCell, grid, SOLUTION_COLOR);
-            }
-
-            renderer.drawGridLines(grid);
-        }
-        else
-        {
-            renderer.drawGrid(grid);
-            GridCell mouseCell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
-            renderer.drawCell(mouseCell, grid, CELL_COLORS[selected_cell_value]);
-            renderer.drawGridLines(grid);
-        }
+        updateAI();
+        render(renderer);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -167,11 +101,90 @@ int main()
     return 0;
 }
 
-void processInput(GLFWwindow *window)
+
+// Helper Functions -------------------------------------------------------------------------------
+
+void updateAI()
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    // AI step/re-initialize
+    if (!map_creation_mode)
     {
-        glfwSetWindowShouldClose(window, true);
+        if (selected_path_endpoints == 2 && (path_finder_ai != nullptr && !path_finder_ai->done()) && animate && current_frame + ANIMATION_INTERVAL >= last_animation)
+        {
+            path_finder_ai->step();
+            last_animation = current_frame;
+        }
+
+        if (reinitialize_ai && selected_path_endpoints == 2)
+        {
+            // ai.init(getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT), &grid, aiType);
+            // if (aiType == DFS)
+            // {
+            //     ai = new SearchDFS(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
+            // }
+            // else
+            // {
+            //     ai = new SearchBFS(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
+            // }
+            // ai = new SearchGreedy(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
+            path_finder_ai = new SearchAStar(&grid, getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT));
+            reinitialize_ai = false;
+        }
+    }
+}
+
+
+void render(Renderer& renderer)
+{
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    if (!map_creation_mode)
+    {
+        renderer.drawGrid(grid);
+
+        if (selected_path_endpoints == 2 && path_finder_ai != nullptr)
+        {
+            std::vector<Node *> closedList = path_finder_ai->getClosed();
+            for (const Node* aNode : closedList)
+            {
+                renderer.drawCell(aNode->state, grid, CLOSED_CELL);
+            }
+            std::vector<Node*> openList = path_finder_ai->getOpen();
+            for (Node* aNode : openList)
+            {
+                renderer.drawCell(aNode->state, grid, OPEN_CELL);
+            }
+            std::vector<Node*> solution = path_finder_ai->getSolution();
+            for (Node* aNode : solution)
+            {
+                renderer.drawCell(aNode->state, grid, SOLUTION_COLOR);
+            }
+        }
+
+        GridCell mouseCell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
+        renderer.drawCell(mouseCell, grid, MOUSE_COLOR);
+
+        GridCell pathStartCell = getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT);
+        GridCell pathEndCell = getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT);
+        if (selected_path_endpoints == 1)
+        {
+            renderer.drawCell(pathStartCell, grid, SOLUTION_COLOR);
+        }
+        else if (selected_path_endpoints == 2)
+        {
+            renderer.drawCell(pathStartCell, grid, SOLUTION_COLOR);
+            renderer.drawCell(pathEndCell, grid, SOLUTION_COLOR);
+        }
+
+        renderer.drawGridLines(grid);
+    }
+    else
+    {
+        renderer.drawGrid(grid);
+        GridCell mouseCell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
+        renderer.drawCell(mouseCell, grid, CELL_COLORS[selected_cell_value]);
+        renderer.drawGridLines(grid);
     }
 }
 
@@ -206,6 +219,7 @@ bool initialize(GLFWwindow* &window, unsigned int width, unsigned int height)
     return true;
 }
 
+
 void loadGrid(Grid& grid, const char* rawData)
 {
     unsigned int i = 0;
@@ -221,6 +235,7 @@ void loadGrid(Grid& grid, const char* rawData)
     }
 }
 
+
 GridCell getCellThatMouseIsOn(Grid& grid,const glm::vec2& mousePos, float gridWidth, float gridHeight)
 {
     const float cellWidth = gridWidth / (float) grid.getNumberOfColumns();
@@ -232,6 +247,19 @@ GridCell getCellThatMouseIsOn(Grid& grid,const glm::vec2& mousePos, float gridWi
 
     return cell;
 }
+
+
+// Helper Functions: input/output ---------------------------------------------------------------------
+
+
+void processInput(GLFWwindow *window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
+}
+
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -254,6 +282,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
         }
     }
 }
+
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
@@ -308,6 +337,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         }
     }
 }
+
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -403,6 +433,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         }
     }
 }
+
 
 void printGrid()
 {
