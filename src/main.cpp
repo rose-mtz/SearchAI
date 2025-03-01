@@ -26,7 +26,7 @@ const glm::vec3 MOUSE_COLOR = glm::vec3(0.0f, 0.75f, 1.0f);
 glm::vec2 mouse_pos;
 glm::vec2 path_start;
 glm::vec2 path_end;
-unsigned int selected_path_endpoints = 0;
+unsigned int selected_path_endpoints = 0; // [0,2]
 bool reinitialize_ai = true;
 SearchAI* path_finder_ai;
 SearchAIType current_ai_type = (SearchAIType) 0;
@@ -198,11 +198,14 @@ void render(Renderer& renderer)
         renderer.drawCell(mouseCell, grid, MOUSE_COLOR);
 
         // Start and end grid cells
-        GridCell pathStartCell = getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT);
-        renderer.drawCell(pathStartCell, grid, SOLUTION_COLOR);
-        GridCell pathEndCell = getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT);
+        if (selected_path_endpoints > 0)
+        {
+            GridCell pathStartCell = getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT);
+            renderer.drawCell(pathStartCell, grid, SOLUTION_COLOR);
+        }
         if (selected_path_endpoints == 2)
         {
+            GridCell pathEndCell = getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT);
             renderer.drawCell(pathEndCell, grid, SOLUTION_COLOR);
         }
 
@@ -368,6 +371,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     else // Mode: map creation
     {
         GridCell clicked_cell = getCellThatMouseIsOn(grid, mouse_pos, SCR_WIDTH, SCR_HEIGHT);
+
         if (!grid.outOfBounds(clicked_cell))
         {
             // Update cell value
@@ -379,32 +383,50 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_M && action == GLFW_PRESS)
+    bool m_press = key == GLFW_KEY_M && action == GLFW_PRESS;
+
+    if (m_press) // Change mode
     {
         map_creation_mode = !map_creation_mode;
+        std::cout << "Map creation mode: " << (map_creation_mode ? "ON" : "OFF") << '\n';
+
+        // Clear selected endpoints
         if (map_creation_mode)
         {
             selected_path_endpoints = 0;
         }
-        std::cout << "Map creation mode: " << (map_creation_mode ? "ON" : "OFF") << '\n';
+
+        return;
     }
 
-    if (!map_creation_mode)
+    if (!map_creation_mode) // Mode: search
     {
-        if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+        bool space_press = key == GLFW_KEY_SPACE && action == GLFW_PRESS;
+
+        if (space_press)
         {
-            if (path_finder_ai->done() && selected_path_endpoints == 2)
+            bool restart_search = path_finder_ai->done() && selected_path_endpoints == 2;
+
+            if (restart_search)
             {
+                // Search is done, restart it
                 reinitialize_ai = true;
                 animate = true;
             }
-            else
+            else 
             {
+                // Toggle animation
                 animate = !animate;
             }
+
+            return;
         }
-        if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
+
+        bool enter_press = key == GLFW_KEY_ENTER && action == GLFW_PRESS;
+
+        if (enter_press)
         {
+            // Change search ai type
             current_ai_type = (SearchAIType) (current_ai_type + 1);
             if (current_ai_type == LAST)
             {
@@ -413,57 +435,86 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             std::cout << "AI Type: " << current_ai_type << '\n';
 
             reinitialize_ai = true;
+
+            return;
         }
     }
-    else
+    else // Mode: map creation
     {
-        if (key == GLFW_KEY_N && action == GLFW_PRESS)
+        bool n_press = key == GLFW_KEY_N && action == GLFW_PRESS;
+
+        if (n_press)
         {
+            // Update "draw" color
             selected_cell_value++;
-            
             if (selected_cell_value >= COUNT_CELL_COLORS)
             {
                 selected_cell_value = 0;
             }
-        }
-        if (key == GLFW_KEY_UP && action == GLFW_PRESS)
-        {
-            selected_grid_density++;
 
-            if (selected_grid_density >= COUNT_GRID_DENSITIES)
+            return;
+        }
+
+        bool up_press = key == GLFW_KEY_UP && action == GLFW_PRESS;
+
+        if (up_press)
+        {
+            if (selected_grid_density != COUNT_GRID_DENSITIES - 1)
             {
-                selected_grid_density = COUNT_GRID_DENSITIES - 1;
+                // Increase grid density
+                selected_grid_density++;
+                grid.changeGrid(GRID_DENSITIES[selected_grid_density], GRID_DENSITIES[selected_grid_density]);
             }
 
-            grid.changeGrid(GRID_DENSITIES[selected_grid_density], GRID_DENSITIES[selected_grid_density]);
+            return;
         }
-        if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+
+        bool down_press = key == GLFW_KEY_DOWN && action == GLFW_PRESS; 
+
+        if (down_press)
         {
-            if (selected_grid_density > 0)
+            if (selected_grid_density != 0)
             {
+                // Decrease grid density
                 selected_grid_density--;
+                grid.changeGrid(GRID_DENSITIES[selected_grid_density], GRID_DENSITIES[selected_grid_density]);
             }
 
-            grid.changeGrid(GRID_DENSITIES[selected_grid_density], GRID_DENSITIES[selected_grid_density]);
+            return;
         }
-        if (key == GLFW_KEY_P && action == GLFW_PRESS)
+
+        bool p_press = key == GLFW_KEY_P && action == GLFW_PRESS;
+
+        if (p_press)
         {
+            // Print grid
             printGrid();
+            return;
         }
-        if (key == GLFW_KEY_C && action == GLFW_PRESS)
+
+        bool c_press = key == GLFW_KEY_C && action == GLFW_PRESS;
+
+        if (c_press)
         {
+            // Clear grid
             grid.clear(selected_cell_value);
+            return;
         }
-        if (key == GLFW_KEY_B && action == GLFW_PRESS)
+
+        bool b_press = key == GLFW_KEY_B && action == GLFW_PRESS;
+        
+        if (b_press)
         {
+            // Change selected pre made map
             selected_grid_pre_made_map++;
-            if (selected_grid_pre_made_map >= GRID_RAW_DATA_SIZE)
+            if (selected_grid_pre_made_map == GRID_RAW_DATA_SIZE)
             {
                 selected_grid_pre_made_map = 0;
             }
 
             grid.changeGrid(GRID_RAW_DATA[selected_grid_pre_made_map]->rows, GRID_RAW_DATA[selected_grid_pre_made_map]->cols);
             loadGrid(grid, GRID_RAW_DATA[selected_grid_pre_made_map]->rawData);
+            return;
         }
     }
 }
