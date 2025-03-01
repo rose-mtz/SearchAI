@@ -27,7 +27,7 @@ enum Action
 
 enum SearchAIType
 {
-    DFS, BFS, ID_DFS
+    ID_DFS, BFS, A_STAR, GREEDY, LAST
 };
 
 std::vector<GridCell> searchDumb(GridCell start, GridCell end);

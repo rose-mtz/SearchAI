@@ -29,7 +29,7 @@ glm::vec2 path_end;
 unsigned int selected_path_endpoints = 0;
 bool reinitialize_ai = true;
 SearchAI* path_finder_ai;
-SearchAIType current_ai_type = BFS;
+SearchAIType current_ai_type = (SearchAIType) 0;
 
 float current_frame = 0.0f;
 float last_animation = 0.0f;
@@ -49,6 +49,9 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 800;
 
 
+// Function declarations -------------------------------------------------------------------------------------
+
+
 bool initialize(GLFWwindow* &window, unsigned int width, unsigned int height);
 void processInput(GLFWwindow *window);
 void loadGrid(Grid& grid, const char* rawData);
@@ -59,6 +62,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void printGrid();
 void updateAI();
 void render(Renderer& renderer);
+
+
+// Main ----------------------------------------------------------------------------------------------------------
 
 
 int main()
@@ -104,6 +110,7 @@ int main()
 
 // Helper Functions -------------------------------------------------------------------------------
 
+
 void updateAI()
 {
     // AI step/re-initialize
@@ -117,17 +124,26 @@ void updateAI()
 
         if (reinitialize_ai && selected_path_endpoints == 2)
         {
-            // ai.init(getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT), &grid, aiType);
-            // if (aiType == DFS)
-            // {
-            //     ai = new SearchDFS(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
-            // }
-            // else
-            // {
-            //     ai = new SearchBFS(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
-            // }
-            // ai = new SearchGreedy(&grid, getCellThatMouseIsOn(grid, pathStart, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, pathEnd, SCR_WIDTH, SCR_HEIGHT));
-            path_finder_ai = new SearchAStar(&grid, getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT), getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT));
+            GridCell start = getCellThatMouseIsOn(grid, path_start, SCR_WIDTH, SCR_HEIGHT);
+            GridCell end = getCellThatMouseIsOn(grid, path_end, SCR_WIDTH, SCR_HEIGHT);
+
+            if (current_ai_type == ID_DFS)
+            {
+                path_finder_ai = new SearchDFS(&grid, start, end);
+            }
+            else if (current_ai_type == BFS)
+            {
+                path_finder_ai = new SearchBFS(&grid, start, end);
+            }
+            else if (current_ai_type = A_STAR)
+            {
+                path_finder_ai = new SearchAStar(&grid, start, end);
+            }
+            else if (current_ai_type == GREEDY)
+            {
+                path_finder_ai = new SearchGreedy(&grid, start, end);
+            }
+
             reinitialize_ai = false;
         }
     }
@@ -367,16 +383,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         }
         if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
         {
-            if (current_ai_type == BFS)
+            current_ai_type = (SearchAIType) (current_ai_type + 1);
+            if (current_ai_type == LAST)
             {
-                current_ai_type = DFS;
-                std::cout << "Search AI: DFS\n";
+                current_ai_type = (SearchAIType) 0;
             }
-            else
-            {
-                current_ai_type = BFS;
-                std::cout << "Search AI: BFS\n";
-            }
+            std::cout << "AI Type: " << current_ai_type << '\n';
 
             reinitialize_ai = true;
         }
